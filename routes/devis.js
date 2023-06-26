@@ -4,9 +4,6 @@ const router = express.Router();
 const {User} = require('../models/user');
  
 
- 
-
-
 router.put('/update/:devisId', async (req, res) => {
   try {
     const { devisId } = req.params;
@@ -38,45 +35,9 @@ router.put('/update/:devisId', async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
- 
-
-
-
-
-
- 
-
-
-
-
- 
-  
-router.put('/:devisId', async (req, res) => {
-  try {
-    const { devisId } = req.params;
-
-    const devis = await Devis.findById(devisId);
-
-    if (!devis) {
-      return res.status(404).json({ error: 'Devis not found' });
-    }
-
-    const montant = devis.montant;
-    const totalPoint = Math.floor(montant * 0.1);
-
-    devis.TotalPoint = totalPoint;
-    await devis.save();
-
-    return res.json(devis);
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-  
-  
 
 router.get(`/`, async (req, res) =>{
-    const desvisList = await Devis.find().populate('user');;
+    const desvisList = await Devis.find().populate('user');
     if(!desvisList) {
         res.status(500).json({success: false})
     } 
@@ -112,9 +73,6 @@ router.get(`/:id`, async (req, res) =>{
     } 
     res.send(devis);
 })
-
-
-
 
 
 

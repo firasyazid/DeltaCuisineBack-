@@ -18,14 +18,15 @@ app.options('*',cors ());
 app.use(authJwt());
 app.use(errorHandler);
 
-
  const userRouter = require ('./routes/user');
  const devisRouter = require ('./routes/devis');
+ const articlesRouter = require ('./routes/articles');
 
  
 //Routes 
  app.use(`${api}/users`, userRouter);
  app.use(`${api}/devis`, devisRouter);
+ app.use(`${api}/articles`, articlesRouter);
 
  
 
@@ -43,7 +44,6 @@ mongoose.connect(process.env.CONNECTION_STRING, {
   console.log(err);
 })
  
-
 app.listen(3000, ()=>{
      console.log('server is running http://localhost:3000');
 })
