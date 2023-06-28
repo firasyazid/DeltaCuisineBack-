@@ -32,48 +32,64 @@ router.put('/update/:devisId', async (req, res) => {
 
     return res.json(devis);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-router.get(`/`, async (req, res) =>{
-    const desvisList = await Devis.find().populate('user');
-    if(!desvisList) {
-        res.status(500).json({success: false})
-    } 
-    res.status(200).send(desvisList);
-})
+
+router.get(`/`, async (req, res) => {
+  try {
+    const devisList = await Devis.find().populate('user');
+    if (!devisList) {
+      return res.status(500).json({ success: false });
+    }
+    res.status(200).send(devisList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
-router.post(`/`, async (req, res) =>{
+
+router.post(`/`, async (req, res) => {
+  try {
     const user = await User.findById(req.body.user);
     if (!user) return res.status(400).send('Invalid user');
 
- 
-
     let devis = new Devis({
-        dateDevis: req.body.dateDevis,
-        status: req.body.status,
-        montant: req.body.montant,
-        user: req.body.user,
-      })
+      dateDevis: req.body.dateDevis,
+      status: req.body.status,
+      montant: req.body.montant,
+      user: req.body.user,
+    });
 
-      devis = await devis.save();
-    if(!devis) 
-    return res.status(500).send('The devis cannot be created')
+    devis = await devis.save();
+    if (!devis) {
+      return res.status(500).send('The devis cannot be created');
+    }
 
     res.send(devis);
-})
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
-router.get(`/:id`, async (req, res) =>{
+
+router.get(`/:id`, async (req, res) => {
+  try {
     const devis = await Devis.findById(req.params.id).populate('user');
 
-    if(!devis) {
-        res.status(500).json({success: false})
-    } 
+    if (!devis) {
+      return res.status(500).json({ success: false });
+    }
     res.send(devis);
-})
-
-
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 module.exports =router;

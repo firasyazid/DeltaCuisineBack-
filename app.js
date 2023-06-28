@@ -21,12 +21,14 @@ app.use(errorHandler);
  const userRouter = require ('./routes/user');
  const devisRouter = require ('./routes/devis');
  const articlesRouter = require ('./routes/articles');
+ const contactRouter = require ('./routes/contact');
 
  
 //Routes 
  app.use(`${api}/users`, userRouter);
  app.use(`${api}/devis`, devisRouter);
  app.use(`${api}/articles`, articlesRouter);
+ app.use(`${api}/contacts`, contactRouter);
 
  
 
