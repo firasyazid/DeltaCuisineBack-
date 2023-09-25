@@ -7,10 +7,10 @@ require('dotenv/config');
 const authJwt = require('./middleware/jwt');
 const errorHandler = require('./middleware/error');
 const api = process.env.API_URL;
-
+app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
+ 
 
 //Middleware
-
 app.use(morgan('tiny'));
 app.use(express.json()); 
 app.use(cors()); 
@@ -22,13 +22,19 @@ app.use(errorHandler);
  const devisRouter = require ('./routes/devis');
  const articlesRouter = require ('./routes/articles');
  const contactRouter = require ('./routes/contact');
-
+ const produitsRouter = require ('./routes/produits');
+const catalogueRouter = require('./routes/catalogue');
+const showroomRouter = require('./routes/showroom');
  
 //Routes 
  app.use(`${api}/users`, userRouter);
  app.use(`${api}/devis`, devisRouter);
  app.use(`${api}/articles`, articlesRouter);
  app.use(`${api}/contacts`, contactRouter);
+ app.use(`${api}/produits`, produitsRouter);
+ app.use(`${api}/catalogues`, catalogueRouter);
+ app.use(`${api}/showrooms`, showroomRouter);
+
 
  
 

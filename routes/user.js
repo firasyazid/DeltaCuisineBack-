@@ -13,17 +13,11 @@ const FILE_TYPE_MAP = {
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const isValid = FILE_TYPE_MAP[file.mimetype];
-    let uploadError = new Error("invalid image type");
-
-    if (isValid) {
-      uploadError = null;
-    }
     cb(null, "public/uploads");
   },
   filename: function (req, file, cb) {
     const fileName = file.originalname.split(" ").join("-");
-    const extension = FILE_TYPE_MAP[file.mimetype];
+    const extension = FILE_TYPE_MAP[file.mimetype] || "file";
     cb(null, `${fileName}-${Date.now()}.${extension}`);
   },
 });
@@ -40,21 +34,19 @@ router.post(
     try {
       const files = req.files;
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
-
       const cinImage = files["cin"][0];
       const patenteImage = files["patente"][0];
 
       const user = new User({
         name: req.body.name,
-        lastname: req.body.lastname,
         email: req.body.email,
-        phone: req.body.phone,
+        fonction: req.body.fonction,
+        numero: req.body.numero,
         cin: `${basePath}${cinImage.filename}`,
         patente: `${basePath}${patenteImage.filename}`,
       });
 
       const savedUser = await user.save();
-
       if (!savedUser) {
         return res.status(400).send("The user cannot be created!");
       }
@@ -106,6 +98,9 @@ router.put("/:id", async (req, res) => {
         phone: req.body.phone,
         isAdmin: req.body.isAdmin,
         validation: req.body.validation,
+        numero: req.body.numero,
+ 
+
       },
       { new: true }
     );
@@ -118,7 +113,6 @@ router.put("/:id", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 router.post("/login", async (req, res) => {
   try {
@@ -142,7 +136,7 @@ router.post("/login", async (req, res) => {
         { expiresIn: "3h" }
       );
 
-      res.status(200).send({ user: user.email, token: token });
+      res.status(200).send({user : user.email, userId: user.id, token: token });
     } else {
       res.status(400).send("Password is incorrect");
     }
@@ -151,7 +145,6 @@ router.post("/login", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 router.get(`/get/count`, async (req, res) => {
   const userCount = await User.countDocuments();
@@ -215,12 +208,130 @@ router.put("/update/:userId", async (req, res) => {
     }
 
     await user.save();
-
     res.status(200).send(user);
   } catch (error) {
     console.error(error);
     res.status(500).send("Error updating user");
   }
 });
+
+router.get("/wlc", (req, res) => {
+  res.send("Welcome to the backend");
+});
+ 
+router.post('/teste', async (req, res) => {
+  try {
+   
+    const user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      fonction: req.body.fonction,
+     });
+
+    
+     const savedUser = await user.save();
+     if (!savedUser) {
+       return res.status(400).send("The user cannot be created!");
+     }
+
+     res.send(savedUser);
+   } catch (error) {
+     console.error(error);
+     res.status(500).send("Error creating user");
+   }
+ }
+);
+
+router.put('/subtract-points/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+     const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+     user.TotalPoint -= 500;
+     await user.save();
+
+    return res.json({ message: 'Points subtracted successfully', updatedUser: user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.put('/convert-points/:userId/:pointsToConvert', async (req, res) => {
+  try {
+      const userId = req.params.userId;
+      const pointsToConvert = parseInt(req.params.pointsToConvert); 
+
+       const user = await User.findById(userId);
+
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+       const moneyAmount = pointsToConvert * 2.5;
+
+       user.TotalPoint -= pointsToConvert;
+      await user.save();
+
+      return res.status(200).json({ moneyAmount });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+router.put(
+  "/:userId/update-image",
+  uploadOptions.single("image"),  
+  async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const file = req.file;
+      const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+
+       const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { image: `${basePath}${file.filename}` },
+        { new: true }  
+      );
+
+      if (!updatedUser) {
+        return res.status(404).send("User not found");
+      }
+
+      res.send(updatedUser);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error updating user's image");
+    }
+  }
+);
+
+router.put('/voyage/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+     const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+     user.TotalPoint -= 1500;
+     await user.save();
+
+    return res.json({ message: 'Points subtracted successfully', updatedUser: user });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 module.exports = router;

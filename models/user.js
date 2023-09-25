@@ -5,10 +5,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    lastname: {
-        type: String,
-        required: true,
-    },
+     
     email: {
         type: String,
         required: true,
@@ -20,8 +17,7 @@ const userSchema = new mongoose.Schema({
 
     phone: {
         type: String,
-        required: true,
-    },
+     },
     isAdmin: {
         type: Boolean,   
         default:false
@@ -39,7 +35,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    
     validation: {
         type: Boolean,
         default: false
@@ -49,6 +44,16 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0,
      },
+     image: { 
+        type: String,
+        default:''
+
+     },
+     numero: {  
+        type: String,
+        default:''
+     },
+     
     
 });
 

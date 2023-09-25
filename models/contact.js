@@ -5,18 +5,27 @@ const contactSchema = new mongoose.Schema({
     type: String,
   },
 
-  sujet: {
-    type: String,
-  },
+   
   message: {
     type: String,
   },
 
   document : { 
-
     type:String,
     default : '',
-  }
+  },
+  devis : {
+    type:String,
+    default : '',
+  },
+  user: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+   client:{ 
+        type: String,   
+        default: '',
+     },
 });
 
 contactSchema.virtual("id").get(function () {

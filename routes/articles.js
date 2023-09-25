@@ -27,7 +27,6 @@ const storage = multer.diskStorage({
     cb(null, `${fileName}-${Date.now()}.${extension}`);
   },
 });
-
 const uploadOptions = multer({ storage: storage });
 
 router.post(
@@ -65,7 +64,6 @@ router.post(
   }
 );
 
-
 router.get("/", async (req, res) => {
   try {
     const articlesList = await Articles.find();
@@ -77,6 +75,24 @@ router.get("/", async (req, res) => {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
+});
+
+router.delete("/:id", (req, res) => {
+  Articles.findByIdAndRemove(req.params.id)
+    .then((prod) => {
+      if (prod) {
+        return res
+          .status(200)
+          .json({ success: true, message: "the Articles is deleted!" });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, message: "Articles not found!" });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({ success: false, error: err });
+    });
 });
 
 

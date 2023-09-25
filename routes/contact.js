@@ -28,22 +28,25 @@ const storage = multer.diskStorage({
 
 const uploadOptions = multer({ storage: storage });
 
- 
 router.post(`/`, uploadOptions.single("document"), async (req, res) => {
   try {
-    const file = req.file;
-    if (!file) return res.status(400).send("No image in the request");
+    let documentPath = "";  
 
-    const fileName = req.file.filename;
-    const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+     
+    if (req.file) {
+      const fileName = req.file.filename;
+      const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
+      documentPath = `${basePath}${fileName}`;
+    }
 
-    let contact = new Contact({
+     let contact = new Contact({
       name: req.body.name,
-      sujet: req.body.sujet,
-      message: req.body.message,
-      document: `${basePath}${fileName}`,
+       message: req.body.message,
+      devis: req.body.devis,
+      document: documentPath,  
+      user: req.body.user,
+      client:req.body.client
     });
-
     contact = await contact.save();
     if (!contact) return res.status(500).send("The contact cannot be created");
 
@@ -54,18 +57,22 @@ router.post(`/`, uploadOptions.single("document"), async (req, res) => {
   }
 });
 
+
 router.get(`/`, async (req, res) => {
   try {
-    const contactList = await Contact.find();
+     const contactList = await Contact.find().populate('user');
+
     if (!contactList) {
       return res.status(500).json({ success: false });
     }
+
     res.status(200).send(contactList);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal server error");
   }
 });
+
 
 router.get(`/:id`, async (req, res) => {
   try {
@@ -80,5 +87,8 @@ router.get(`/:id`, async (req, res) => {
     res.status(500).send("Internal server error");
   }
 });
+
+
+ 
 
 module.exports = router;

@@ -12,22 +12,34 @@ const devisSchema = new mongoose.Schema({
      },
      status: {
         type: String,
-         default: 'Pending',
-    },
+        enum: ['En cours de traitement', 'En cours de production', 'Clôturé'],
+        default: 'En cours de traitement'
+      },
     montant : {
         type: Number,
         default:0
     },
-    TotalPoint: {
-        type: Number,
-        default: 0,
-     },
-     converted: { 
+      converted: { 
         type:Boolean, 
         default:false,
-     }
-
-
+     },
+     showroom: {    
+        type: String,   
+        default: '',
+     },
+     numDevis: {
+        type: String,
+        default: '',
+     },
+     client:{ 
+        type: String,   
+        default: '',
+     },
+     nombrepoint:{ 
+        type: Number,  
+        default:0
+      }
+     
 });
 
 
