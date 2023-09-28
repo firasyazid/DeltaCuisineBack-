@@ -89,6 +89,23 @@ router.get(`/:id`, async (req, res) => {
 });
 
 
- 
+router.delete("/:id", (req, res) => {
+  Contact.findByIdAndRemove(req.params.id)
+    .then((user) => {
+      if (user) {
+        return res
+          .status(200)
+          .json({ success: true, message: "the contact is deleted!" });
+      } else {
+        return res
+          .status(404)
+          .json({ success: false, message: "contact not found!" });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({ success: false, error: err });
+    });
+});
+
 
 module.exports = router;

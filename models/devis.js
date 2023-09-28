@@ -12,7 +12,7 @@ const devisSchema = new mongoose.Schema({
      },
      status: {
         type: String,
-        enum: ['En cours de traitement', 'En cours de production', 'Clôturé'],
+        enum: ['Devis', 'Commande', 'Clôturé'],
         default: 'En cours de traitement'
       },
     montant : {

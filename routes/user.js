@@ -4,6 +4,8 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const nodemailer = require('nodemailer');
+
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -106,6 +108,35 @@ router.put("/:id", async (req, res) => {
     );
 
     if (!user) return res.status(400).send("The user cannot be updated!");
+
+
+    if (req.body.validation === true) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'firasyazid4@gmail.com',
+          pass: 'ifmjkxuznswjtkfg',
+          },
+      });
+
+      const mailOptions = {
+        from: 'firasyazid4@gmail.com',
+        to: user.email,
+        subject: 'Account Validation',
+        text: `Dear ${user.name},\n\nYour account has been successfully validated. Here is your new password: ${req.body.password}\n\nPlease login with your new password and consider changing it to a more secure one.`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+        } else {
+          console.log('Email sent:', info.response);
+        }
+      });
+    }
+
+
+
 
     res.send(user);
   } catch (error) {
@@ -255,6 +286,38 @@ router.put('/subtract-points/:userId', async (req, res) => {
      user.TotalPoint -= 500;
      await user.save();
 
+     const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'firasyazid4@gmail.com',
+        pass: 'ifmjkxuznswjtkfg',
+    },
+    });
+    const mailOptions = {
+      from: 'firasyazid4@gmail.com',
+      to: 'firasyazid4@gmail.com', 
+      subject: 'Points Deduction',
+      html: `
+        <html>
+          <body>
+            <p>Dear User,</p>
+            <p> the User: ${userId} with email: ${user.email} , with name: ${user.name} name  has converted 500 points for a sejour/hotel. His remaining points: ${user.TotalPoint}</p>
+            <p>We must contact him.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+
+
     return res.json({ message: 'Points subtracted successfully', updatedUser: user });
   } catch (error) {
     console.error(error);
@@ -266,17 +329,45 @@ router.put('/convert-points/:userId/:pointsToConvert', async (req, res) => {
   try {
       const userId = req.params.userId;
       const pointsToConvert = parseInt(req.params.pointsToConvert); 
-
        const user = await User.findById(userId);
-
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
 
        const moneyAmount = pointsToConvert * 2.5;
-
        user.TotalPoint -= pointsToConvert;
       await user.save();
+
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'firasyazid4@gmail.com',
+          pass: 'ifmjkxuznswjtkfg',
+      },
+      });
+
+      const mailOptions = {
+        from: 'firasyazid4@gmail.com',
+        to: 'firasyazid4@gmail.com', 
+        subject: 'Points Deduction',
+        html: `
+          <html>
+            <body>
+              <p>Dear User,</p>
+              <p>The User: ${userId} with email: ${user.email} has converted ${pointsToConvert} points, resulting in a total amount of ${moneyAmount}.</p>
+              <p>We must contact him.</p>
+            </body>
+          </html>
+        `,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+        } else {
+          console.log('Email sent:', info.response);
+        }
+      });
 
       return res.status(200).json({ moneyAmount });
   } catch (error) {
@@ -326,12 +417,49 @@ router.put('/voyage/:userId', async (req, res) => {
      user.TotalPoint -= 1500;
      await user.save();
 
+
+     const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'firasyazid4@gmail.com',
+        pass: 'ifmjkxuznswjtkfg',
+    },
+    });
+
+    const mailOptions = {
+      from: 'firasyazid4@gmail.com',
+      to: 'firasyazid4@gmail.com', 
+      subject: 'Points Deduction',
+      html: `
+        <html>
+          <body>
+            <p>Dear User,</p>
+            <p>The User: ${userId} with email: ${user.email} has converted 1500 points to an trip </p>
+            <p>We must contact him.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+
+
     return res.json({ message: 'Points subtracted successfully', updatedUser: user });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+
+
 
 
 module.exports = router;

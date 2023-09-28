@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const {User} = require('../models/user');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer');
+
 
 
 
@@ -10,8 +12,6 @@ router.put('/update/:devisId', async (req, res) => {
   try {
     const { devisId } = req.params;
     const devis = await Devis.findById(devisId).populate('user');
-
-
     if (!devis) {
       return res.status(404).json({ error: 'Devis not found' });
     }
@@ -21,18 +21,67 @@ router.put('/update/:devisId', async (req, res) => {
     if (devis.status !== 'Clôturé') {
       return res.status(400).json({ error: 'Devis is not in Clôturé status' });
     }
-
-
     const montant = devis.montant;
     const totalPoint = Math.floor(montant * 0.01);
     devis.TotalPoint = totalPoint;
     devis.converted = true;
+
+    const updatedDevis = await Devis.findById(devisId).populate('user');
+
+    if (updatedDevis && updatedDevis.user && updatedDevis.user.email) {
+       const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'firasyazid4@gmail.com',
+          pass: 'ifmjkxuznswjtkfg',
+        },
+      });
+
+       const mailOptions = {
+        from: 'firasyazid4@gmail.com',
+        to: updatedDevis.user.email,  
+        subject: 'Devis Converted',
+        html: `
+        <html>
+          <body>
+            <p>Dear User,</p>
+            <p>  Your Devis (Devis ID: ${updatedDevis.id}) has been Converted to: ${updatedDevis.nombrepoint} points</p>
+            <p>Thank you for using our service.</p>
+            
+          </body>
+        </html>
+      `,      };
+
+     
+
+
+
+       transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          res.status(500).send('Error sending email');
+        } else {
+          console.log('Email sent:', info.response);
+          res.status(200).send('Email sent successfully');
+        }
+      });
+    }
+
+
+
     
     await devis.save();
     const user = devis.user;
 
     user.TotalPoint += totalPoint;
     await user.save();
+
+
+
+
+
+
+
 
     return res.json(devis);
   } catch (error) {
@@ -184,6 +233,10 @@ router.delete("/:id", (req, res) => {
 });
 
 
+
+
+
+
 router.put("/:id", async (req, res) => {
   try {
  
@@ -204,13 +257,89 @@ router.put("/:id", async (req, res) => {
 
     if (!devis) return res.status(400).send("The devis cannot be updated!");
 
-    res.send(devis);
+    const updatedDevis = await Devis.findById(req.params.id).populate('user');
+
+    if (updatedDevis && updatedDevis.user && updatedDevis.user.email) {
+       const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'firasyazid4@gmail.com',
+          pass: 'ifmjkxuznswjtkfg',
+        },
+      });
+
+       const mailOptions = {
+        from: 'firasyazid4@gmail.com',
+        to: updatedDevis.user.email,  
+        subject: 'Devis Status Update',
+        html: `
+        <html>
+          <body>
+            <p>Dear User,</p>
+            <p> The status of your Devis (Devis ID: ${updatedDevis.numDevis}) has been updated to: ${req.body.status}</p>
+            <p>Thank you for using our service.</p>
+          </body>
+        </html>
+      `,      };
+
+     
+
+
+
+       transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          res.status(500).send('Error sending email');
+        } else {
+          console.log('Email sent:', info.response);
+          res.status(200).send('Email sent successfully');
+        }
+      });
+    }
+
+   res.send(devis);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
   }
 });
 
+
+
+router.post("/test", async (req, res) => {
+  try {
+    // Create a transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'firasyazid4@gmail.com',
+        pass: 'ifmjkxuznswjtkfg',
+      },
+    });
+
+    // Define email options
+    const mailOptions = {
+      from: 'firasyazid4@gmail.com',
+      to: 'yazid.firas@esprit.tn',
+      subject: 'Devis Status Update',
+      text: 'The status of your Devis has been updated.',
+    };
+
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        res.status(500).send('Error sending email');
+      } else {
+        console.log('Email sent:', info.response);
+        res.status(200).send('Email sent successfully');
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
 module.exports =router;
