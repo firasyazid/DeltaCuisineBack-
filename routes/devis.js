@@ -21,13 +21,19 @@ router.put('/update/:devisId', async (req, res) => {
     if (devis.status !== 'Clôturé') {
       return res.status(400).json({ error: 'Devis is not in Clôturé status' });
     }
+
     const montant = devis.montant;
-    const totalPoint = Math.floor(montant * 0.01);
+ 
+if (montant >= 150000) {
+  totalPoint = Math.floor(montant * 0.02);
+} else {
+  totalPoint = Math.floor(montant * 0.01);
+}
     devis.TotalPoint = totalPoint;
     devis.converted = true;
+     
 
     const updatedDevis = await Devis.findById(devisId).populate('user');
-
     if (updatedDevis && updatedDevis.user && updatedDevis.user.email) {
        const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -47,14 +53,11 @@ router.put('/update/:devisId', async (req, res) => {
             <p>Dear User,</p>
             <p>  Your Devis (Devis ID: ${updatedDevis.id}) has been Converted to: ${updatedDevis.nombrepoint} points</p>
             <p>Thank you for using our service.</p>
-            
+
           </body>
         </html>
-      `,      };
-
-     
-
-
+      `,     
+     };
 
        transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
@@ -105,7 +108,6 @@ router.get(`/`, async (req, res) => {
 });
 
 
-
 router.post(`/`, async (req, res) => {
   try {
     const user = await User.findById(req.body.user);
@@ -119,6 +121,7 @@ router.post(`/`, async (req, res) => {
       showroom: req.body.showroom,
       numDevis: req.body.numDevis,
       client: req.body.client, 
+      commercial: req.body.commercial, 
       nombrepoint:req.body.montant* 0.01,  
 
     });
@@ -231,9 +234,6 @@ router.delete("/:id", (req, res) => {
       return res.status(500).json({ success: false, error: err });
     });
 });
-
-
-
 
 
 

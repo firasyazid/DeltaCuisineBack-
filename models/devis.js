@@ -13,7 +13,7 @@ const devisSchema = new mongoose.Schema({
      status: {
         type: String,
         enum: ['Devis', 'Commande', 'Clôturé'],
-        default: 'En cours de traitement'
+        default: 'Devis'
       },
     montant : {
         type: Number,
@@ -38,7 +38,11 @@ const devisSchema = new mongoose.Schema({
      nombrepoint:{ 
         type: Number,  
         default:0
-      }
+      },
+      commercial:{ 
+        type: String,   
+        default: '',
+     },
      
 });
 
