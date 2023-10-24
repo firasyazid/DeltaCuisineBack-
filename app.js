@@ -25,6 +25,8 @@ app.use(errorHandler);
  const produitsRouter = require ('./routes/produits');
 const catalogueRouter = require('./routes/catalogue');
 const showroomRouter = require('./routes/showroom');
+const ConversionRouter = require('./routes/conversion');
+
  
 //Routes 
  app.use(`${api}/users`, userRouter);
@@ -34,6 +36,7 @@ const showroomRouter = require('./routes/showroom');
  app.use(`${api}/produits`, produitsRouter);
  app.use(`${api}/catalogues`, catalogueRouter);
  app.use(`${api}/showrooms`, showroomRouter);
+ app.use(`${api}/conversions`, ConversionRouter);
 
 
  

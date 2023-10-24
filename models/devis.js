@@ -12,7 +12,7 @@ const devisSchema = new mongoose.Schema({
      },
      status: {
         type: String,
-        enum: ['Devis', 'Commande', 'Clôturé'],
+        enum: ['Devis', 'Commande', 'Livraison'],
         default: 'Devis'
       },
     montant : {

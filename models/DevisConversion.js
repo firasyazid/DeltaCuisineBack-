@@ -1,18 +1,21 @@
 const mongoose = require('mongoose');
 
-const devisConversionSchema = new mongoose.Schema({
+const ConversionSchema = new mongoose.Schema({
     conversionRate: {
         type: Number,
         required: true,
     },
  });
 
- devisConversionSchema.virtual('id').get(function () {
+ ConversionSchema.virtual('id').get(function () {
     return this._id.toHexString();
 });
-devisConversionSchema.set('toJSON', {
+ConversionSchema.set('toJSON', {
     virtuals: true,
 });
 
-exports.Devis = mongoose.model('DevisConversion', devisConversionSchema);
-exports.devisConversionSchema = devisConversionSchema;
+exports.DevisConversion = mongoose.model('DevisConversion', ConversionSchema);
+exports.ConversionSchema = ConversionSchema;
+
+
+ 

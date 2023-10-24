@@ -4,7 +4,9 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
-const nodemailer = require('nodemailer');
+ const {DevisConversion} = require("../models/DevisConversion");
+const nodemailer = require("nodemailer");
+
 
 
 const FILE_TYPE_MAP = {
@@ -53,7 +55,45 @@ router.post(
         return res.status(400).send("The user cannot be created!");
       }
 
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: "applicationdeltacuisine@gmail.com",
+          pass: "pphexfcjduvckjdv",
+        },
+      });
+  
+       const mailOptions = {
+        from: "applicationdeltacuisine@gmail.com",
+        to: req.body.email ,
+        subject: "Inscription Delta cuisine Application",
+        html: `
+        <html>
+          <body>
+            <p>Merci pour votre inscription chez Delta Cuisine !</p>
+            <p>Votre compte est en cours de validation. Vous recevrez un e-mail de confirmation contenant votre mot de passe une fois que votre compte aura été validé.</p>
+            <p>L'équipe de Delta Cuisine vous souhaite la bienvenue.</p>
+          </body>
+        </html>
+      `,      };
+  
+       
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+          res.status(500).send("Error sending email");
+        } else {
+          console.log("Email sent:", info.response);
+          res.status(200).send("Email sent successfully");
+        }
+      });
+
+
+
+
       res.send(savedUser);
+      
     } catch (error) {
       console.error(error);
       res.status(500).send("Error creating user");
@@ -101,42 +141,40 @@ router.put("/:id", async (req, res) => {
         isAdmin: req.body.isAdmin,
         validation: req.body.validation,
         numero: req.body.numero,
- 
-
       },
       { new: true }
     );
 
     if (!user) return res.status(400).send("The user cannot be updated!");
 
-
     if (req.body.validation === true) {
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
-          user: 'firasyazid4@gmail.com',
-          pass: 'ifmjkxuznswjtkfg',
-          },
+          user: "applicationdeltacuisine@gmail.com",
+          pass: "pphexfcjduvckjdv",
+        },
       });
 
       const mailOptions = {
-        from: 'firasyazid4@gmail.com',
+        from: "applicationdeltacuisine@gmail.com",
         to: user.email,
-        subject: 'Account Validation',
-        text: `Dear ${user.name},\n\nYour account has been successfully validated. Here is your new password: ${req.body.password}\n\nPlease login with your new password and consider changing it to a more secure one.`,
+        subject: "Account Validation",
+        text: `${user.name},\n\Votre compte a été validé avec succès,
+        Voici votre nouveau mot de passe : ${req.body.password}\n\nBienvenue\n\L'équipe Delta cuisine.
+        `,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.error('Error sending email:', error);
+          console.error("Error sending email:", error);
+          res.status(500).send("Error sending email");
         } else {
-          console.log('Email sent:', info.response);
+          console.log("Email sent:", info.response);
+          res.status(200).send("Email sent successfully");
         }
       });
     }
-
-
-
 
     res.send(user);
   } catch (error) {
@@ -167,7 +205,7 @@ router.post("/login", async (req, res) => {
         { expiresIn: "3h" }
       );
 
-      res.status(200).send({user : user.email, userId: user.id, token: token });
+      res.status(200).send({ user: user.email, userId: user.id, token: token });
     } else {
       res.status(400).send("Password is incorrect");
     }
@@ -249,60 +287,59 @@ router.put("/update/:userId", async (req, res) => {
 router.get("/wlc", (req, res) => {
   res.send("Welcome to the backend");
 });
- 
-router.post('/teste', async (req, res) => {
+
+router.post("/teste", async (req, res) => {
   try {
-   
     const user = new User({
       name: req.body.name,
       email: req.body.email,
       fonction: req.body.fonction,
-     });
+    });
 
-    
-     const savedUser = await user.save();
-     if (!savedUser) {
-       return res.status(400).send("The user cannot be created!");
-     }
+    const savedUser = await user.save();
+    if (!savedUser) {
+      return res.status(400).send("The user cannot be created!");
+    }
 
-     res.send(savedUser);
-   } catch (error) {
-     console.error(error);
-     res.status(500).send("Error creating user");
-   }
- }
-);
+    res.send(savedUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error creating user");
+  }
+});
 
-router.put('/subtract-points/:userId', async (req, res) => {
+router.put("/subtract-points/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-     const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-     user.TotalPoint -= 500;
-     await user.save();
+    user.TotalPoint -= 500;
+    await user.save();
 
-     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
       auth: {
-        user: 'firasyazid4@gmail.com',
-        pass: 'ifmjkxuznswjtkfg',
-    },
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv"
+        ,
+      },
     });
     const mailOptions = {
-      from: 'firasyazid4@gmail.com',
-      to: 'firasyazid4@gmail.com', 
-      subject: 'Points Deduction',
+      from: "applicationdeltacuisine@gmail.com",
+      to: "applicationdeltacuisine@gmail.com",
+      subject: "Points Converti en séjour",
       html: `
         <html>
           <body>
-            <p>Dear User,</p>
-            <p> the User: ${userId} with email: ${user.email} , with name: ${user.name} name  has converted 500 points for a sejour/hotel. His remaining points: ${user.TotalPoint}</p>
-            <p>We must contact him.</p>
+            <p> Admin,</p>
+            <p> L'utilisateur : ${userId} avec l'adresse e-mail: ${user.email} , et le nom: ${user.name} 
+            a échangé 500 points contre un séjour à l'hôtel. Il lui reste actuellement ${user.TotalPoint}</p>
+            <p>Nous devons le contacter.</p>
           </body>
         </html>
       `,
@@ -310,86 +347,95 @@ router.put('/subtract-points/:userId', async (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Error sending email:', error);
+        console.error("Error sending email:", error);
       } else {
-        console.log('Email sent:', info.response);
+        console.log("Email sent:", info.response);
       }
     });
 
-
-
-    return res.json({ message: 'Points subtracted successfully', updatedUser: user });
+    return res.json({
+      message: "Points subtracted successfully",
+      updatedUser: user,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.put('/convert-points/:userId/:pointsToConvert', async (req, res) => {
+router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
+
   try {
-      const userId = req.params.userId;
-      const pointsToConvert = parseInt(req.params.pointsToConvert); 
-       const user = await User.findById(userId);
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    const userId = req.params.userId;
+    const pointsToConvert = parseInt(req.params.pointsToConvert);
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-       const moneyAmount = pointsToConvert * 2.5;
-       user.TotalPoint -= pointsToConvert;
-      await user.save();
+    const devisConversion = await DevisConversion.findOne();
+    if (!devisConversion) {
+      return res.status(500).json({ message: "Conversion rate not found" });
+    }
 
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'firasyazid4@gmail.com',
-          pass: 'ifmjkxuznswjtkfg',
+    const conversionrate = devisConversion.conversionRate;
+    const moneyAmount = pointsToConvert * conversionrate;
+    user.TotalPoint -= pointsToConvert;
+    await user.save();
+
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
       },
-      });
+    });
 
-      const mailOptions = {
-        from: 'firasyazid4@gmail.com',
-        to: 'firasyazid4@gmail.com', 
-        subject: 'Points Deduction',
-        html: `
+    const mailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: "applicationdeltacuisine@gmail.com",
+      subject: "Points converti en argent",
+      html: `
           <html>
             <body>
-              <p>Dear User,</p>
-              <p>The User: ${userId} with email: ${user.email} has converted ${pointsToConvert} points, resulting in a total amount of ${moneyAmount}.</p>
-              <p>We must contact him.</p>
+              <p>Admin,</p>
+              <p>L'utilisateur: ${userId} avec l'adresse e-mail: ${user.email} a converti ${pointsToConvert} points,
+               ce qui équivaut à un montant total de  ${moneyAmount} DT.</p>
+              <p>Nous devons le contacter.</p>
             </body>
           </html>
         `,
-      };
-  
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email:', error);
-        } else {
-          console.log('Email sent:', info.response);
-        }
-      });
+    };
 
-      return res.status(200).json({ moneyAmount });
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
+
+    return res.status(200).json({ moneyAmount });
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Internal server error' });
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-
 router.put(
   "/:userId/update-image",
-  uploadOptions.single("image"),  
+  uploadOptions.single("image"),
   async (req, res) => {
     try {
       const userId = req.params.userId;
       const file = req.file;
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
 
-       const updatedUser = await User.findByIdAndUpdate(
+      const updatedUser = await User.findByIdAndUpdate(
         userId,
         { image: `${basePath}${file.filename}` },
-        { new: true }  
+        { new: true }
       );
 
       if (!updatedUser) {
@@ -404,38 +450,39 @@ router.put(
   }
 );
 
-router.put('/voyage/:userId', async (req, res) => {
+
+router.put("/voyage/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-     const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-     user.TotalPoint -= 1500;
-     await user.save();
+    user.TotalPoint -= 1500;
+    await user.save();
 
-
-     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
       auth: {
-        user: 'firasyazid4@gmail.com',
-        pass: 'ifmjkxuznswjtkfg',
-    },
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv"
+        ,
+      },
     });
 
     const mailOptions = {
-      from: 'firasyazid4@gmail.com',
-      to: 'firasyazid4@gmail.com', 
-      subject: 'Points Deduction',
+      from: "applicationdeltacuisine@gmail.com",
+      to: "applicationdeltacuisine@gmail.com",
+      subject: "Points Converti en voyage",
       html: `
         <html>
           <body>
-            <p>Dear User,</p>
-            <p>The User: ${userId} with email: ${user.email} has converted 1500 points to an trip </p>
-            <p>We must contact him.</p>
+            <p> Admin,</p>
+            <p>L'utilisateur: ${userId} avec l'adresse e-mail: ${user.email} a échangé 1500 points contre un voyage. </p>
+            <p>Nous devons le contacter.</p>
           </body>
         </html>
       `,
@@ -443,23 +490,20 @@ router.put('/voyage/:userId', async (req, res) => {
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Error sending email:', error);
+        console.error("Error sending email:", error);
       } else {
-        console.log('Email sent:', info.response);
+        console.log("Email sent:", info.response);
       }
     });
 
-
-
-    return res.json({ message: 'Points subtracted successfully', updatedUser: user });
+    return res.json({
+      message: "Points subtracted successfully",
+      updatedUser: user,
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
-
-
-
-
 
 module.exports = router;
