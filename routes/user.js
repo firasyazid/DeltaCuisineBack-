@@ -4,10 +4,8 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
- const {DevisConversion} = require("../models/DevisConversion");
+const { DevisConversion } = require("../models/DevisConversion");
 const nodemailer = require("nodemailer");
-
-
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -55,7 +53,6 @@ router.post(
         return res.status(400).send("The user cannot be created!");
       }
 
-
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -63,10 +60,10 @@ router.post(
           pass: "pphexfcjduvckjdv",
         },
       });
-  
-       const mailOptions = {
+
+      const mailOptions = {
         from: "applicationdeltacuisine@gmail.com",
-        to: req.body.email ,
+        to: req.body.email,
         subject: "Inscription Delta cuisine Application",
         html: `
         <html>
@@ -76,9 +73,9 @@ router.post(
             <p>L'équipe de Delta Cuisine vous souhaite la bienvenue.</p>
           </body>
         </html>
-      `,      };
-  
-       
+      `,
+      };
+
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.error("Error sending email:", error);
@@ -89,11 +86,7 @@ router.post(
         }
       });
 
-
-
-
       res.send(savedUser);
-      
     } catch (error) {
       console.error(error);
       res.status(500).send("Error creating user");
@@ -325,8 +318,7 @@ router.put("/subtract-points/:userId", async (req, res) => {
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
-        pass: "pphexfcjduvckjdv"
-        ,
+        pass: "pphexfcjduvckjdv",
       },
     });
     const mailOptions = {
@@ -364,7 +356,6 @@ router.put("/subtract-points/:userId", async (req, res) => {
 });
 
 router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
-
   try {
     const userId = req.params.userId;
     const pointsToConvert = parseInt(req.params.pointsToConvert);
@@ -382,7 +373,6 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
     const moneyAmount = pointsToConvert * conversionrate;
     user.TotalPoint -= pointsToConvert;
     await user.save();
-
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -450,7 +440,6 @@ router.put(
   }
 );
 
-
 router.put("/voyage/:userId", async (req, res) => {
   const userId = req.params.userId;
 
@@ -468,8 +457,7 @@ router.put("/voyage/:userId", async (req, res) => {
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
-        pass: "pphexfcjduvckjdv"
-        ,
+        pass: "pphexfcjduvckjdv",
       },
     });
 

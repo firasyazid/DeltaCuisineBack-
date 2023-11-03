@@ -173,8 +173,8 @@ router.get("/:userId/devis-status-count", async (req, res) => {
     const userId = req.params.userId;
 
     const allStatuses = [
-      "En cours de traitement",
-      "En cours de production",
+      "Devis",
+      "Commande",
       "Livraison",
     ];
 
