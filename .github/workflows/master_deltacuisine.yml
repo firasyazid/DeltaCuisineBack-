@@ -59,4 +59,4 @@ jobs:
           app-name: 'deltacuisine'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4DD3568987C54570B37123854CBBEA56 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7DFD41E74A154D0CBEDB0A95478CDAC2 }}
