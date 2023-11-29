@@ -53,6 +53,9 @@ mongoose.connect(process.env.CONNECTION_STRING, {
   console.log(err);
 })
  
+app.get('/', (req, res) => { 
+  res.send('Hello, Azure! This is a Node.js application.'); 
+}); 
 app.listen(3000, ()=>{
      console.log('server is running http://localhost:3000');
 })
