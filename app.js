@@ -7,7 +7,8 @@ require('dotenv/config');
  const errorHandler = require('./middleware/error');
 const api = process.env.API_URL;
 app.use("/public/uploads", express.static(__dirname + "/public/uploads"));
- 
+const port = process.env.PORT || 3001; 
+
 
 //Middleware
 app.use(morgan('tiny'));
@@ -56,6 +57,8 @@ mongoose.connect(process.env.CONNECTION_STRING, {
 app.get('/', (req, res) => { 
   res.send('Hello, Azure! This is a Node.js application.'); 
 }); 
-app.listen(3000, ()=>{
-     console.log('server is running http://localhost:3000');
+app.listen(port, ()=>{
+  console.log(`Server is running on port ${port}`); 
 })
+
+module.exports = app;
