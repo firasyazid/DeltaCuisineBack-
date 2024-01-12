@@ -44,6 +44,7 @@ router.post(
         email: req.body.email,
         fonction: req.body.fonction,
         numero: req.body.numero,
+        phone: req.body.phone,
         cin: `${basePath}${cinImage.filename}`,
         patente: `${basePath}${patenteImage.filename}`,
       });
@@ -281,6 +282,8 @@ router.get("/wlc", (req, res) => {
   res.send("Welcome to the backend");
 });
 
+
+ 
 router.post("/teste", async (req, res) => {
   try {
     const user = new User({
@@ -301,6 +304,10 @@ router.post("/teste", async (req, res) => {
   }
 });
 
+
+
+//sejour
+
 router.put("/subtract-points/:userId", async (req, res) => {
   const userId = req.params.userId;
 
@@ -311,39 +318,61 @@ router.put("/subtract-points/:userId", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.TotalPoint -= 500;
+    const pointsToDeduct = 500;
+    user.TotalPoint -= pointsToDeduct;
     await user.save();
 
-    const transporter = nodemailer.createTransport({
+    // Send user notification email
+    const userTransporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
         pass: "pphexfcjduvckjdv",
       },
     });
-    const mailOptions = {
+
+    const userMailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: user.email,
+      subject: "Séjour Confirmé",
+      html: `
+        <html>
+          <body>
+            <p>Bonjour ${user.name},</p>
+            <p>Votre séjour à l'hôtel a été confirmé. Vous avez échangé 500 points avec succès. Il vous reste actuellement ${user.TotalPoint} points.</p>
+            <p>Nous vous contacterons pour plus de détails.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    await userTransporter.sendMail(userMailOptions);
+
+    // Send admin notification email
+    const adminTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
+    });
+
+    const adminMailOptions = {
       from: "applicationdeltacuisine@gmail.com",
       to: "applicationdeltacuisine@gmail.com",
       subject: "Points Converti en séjour",
       html: `
         <html>
           <body>
-            <p> Admin,</p>
-            <p> L'utilisateur : ${userId} avec l'adresse e-mail: ${user.email} , et le nom: ${user.name} 
-            a échangé 500 points contre un séjour à l'hôtel. Il lui reste actuellement ${user.TotalPoint}</p>
+            <p>Admin,</p>
+            <p>L'utilisateur ${user.name} : ${userId} avec l'adresse e-mail: ${user.email} et le nom: ${user.name} a échangé 500 points contre un séjour à l'hôtel. Il lui reste actuellement ${user.TotalPoint} points.</p>
             <p>Nous devons le contacter.</p>
           </body>
         </html>
       `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    });
+    await adminTransporter.sendMail(adminMailOptions);
 
     return res.json({
       message: "Points subtracted successfully",
@@ -355,26 +384,28 @@ router.put("/subtract-points/:userId", async (req, res) => {
   }
 });
 
+///point to money
 router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
   try {
     const userId = req.params.userId;
     const pointsToConvert = parseInt(req.params.pointsToConvert);
     const user = await User.findById(userId);
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const devisConversion = await DevisConversion.findOne();
+
     if (!devisConversion) {
       return res.status(500).json({ message: "Conversion rate not found" });
     }
 
-    const conversionrate = devisConversion.conversionRate;
-    const moneyAmount = pointsToConvert * conversionrate;
-    user.TotalPoint -= pointsToConvert;
-    await user.save();
+    const conversionRate = devisConversion.conversionRate;
+    const moneyAmount = pointsToConvert * conversionRate;
 
-    const transporter = nodemailer.createTransport({
+    // Send user notification email
+    const userTransporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
@@ -382,36 +413,58 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
       },
     });
 
-    const mailOptions = {
+    const userMailOptions = {
       from: "applicationdeltacuisine@gmail.com",
-      to: "applicationdeltacuisine@gmail.com",
-      subject: "Points converti en argent",
+      to: user.email,
+      subject: "Conversion en cours",
       html: `
-          <html>
-            <body>
-              <p>Admin,</p>
-              <p>L'utilisateur: ${userId} avec l'adresse e-mail: ${user.email} a converti ${pointsToConvert} points,
-               ce qui équivaut à un montant total de  ${moneyAmount} DT.</p>
-              <p>Nous devons le contacter.</p>
-            </body>
-          </html>
-        `,
+        <html>
+          <body>
+            <p>Bonjour ${user.username},</p>
+            <p>Votre conversion de ${pointsToConvert} points est en cours. Nous vous informerons dès que le processus sera terminé.</p>
+            <p>Merci de faire partie de notre programme de fidélité.</p>
+          </body>
+        </html>
+      `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
+    await userTransporter.sendMail(userMailOptions);
+
+     user.TotalPoint -= pointsToConvert;
+    await user.save();
+
+     const adminTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
     });
 
+    const adminMailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: "applicationdeltacuisine@gmail.com",
+      subject: "Points convertis en argent",
+      html: `
+        <html>
+          <body>
+            <p>Admin,</p>
+            <p>L'utilisateur ${user.name}:  Id : ${userId} avec l'adresse e-mail: ${user.email} a converti ${pointsToConvert} points,
+               ce qui équivaut à un montant total de ${moneyAmount} DT.</p>
+            <p>Nous devons le contacter.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    await adminTransporter.sendMail(adminMailOptions);
     return res.status(200).json({ moneyAmount });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 router.put(
   "/:userId/update-image",
@@ -439,7 +492,7 @@ router.put(
     }
   }
 );
-
+//// voyage
 router.put("/voyage/:userId", async (req, res) => {
   const userId = req.params.userId;
 
@@ -453,7 +506,8 @@ router.put("/voyage/:userId", async (req, res) => {
     user.TotalPoint -= 1500;
     await user.save();
 
-    const transporter = nodemailer.createTransport({
+    // Send user notification email
+    const userTransporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
@@ -461,28 +515,48 @@ router.put("/voyage/:userId", async (req, res) => {
       },
     });
 
-    const mailOptions = {
+    const userMailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: user.email,
+      subject: "Voyage Confirmé",
+      html: `
+        <html>
+          <body>
+            <p>Bonjour ${user.name},</p>
+            <p>Votre voyage a été confirmé. Vous avez échangé 1500 points avec succès.</p>
+            <p>Nous vous contacterons pour plus de détails.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    await userTransporter.sendMail(userMailOptions);
+
+    // Send admin notification email
+    const adminTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
+    });
+
+    const adminMailOptions = {
       from: "applicationdeltacuisine@gmail.com",
       to: "applicationdeltacuisine@gmail.com",
       subject: "Points Converti en voyage",
       html: `
         <html>
           <body>
-            <p> Admin,</p>
-            <p>L'utilisateur: ${userId} avec l'adresse e-mail: ${user.email} a échangé 1500 points contre un voyage. </p>
+            <p>Admin,</p>
+            <p>L'utilisateur ${user.name} : ${userId} avec l'adresse e-mail: ${user.email} a échangé 1500 points contre un voyage.</p>
             <p>Nous devons le contacter.</p>
           </body>
         </html>
       `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    });
+    await adminTransporter.sendMail(adminMailOptions);
 
     return res.json({
       message: "Points subtracted successfully",

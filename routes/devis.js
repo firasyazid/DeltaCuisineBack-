@@ -4,7 +4,7 @@ const router = express.Router();
 const { User } = require("../models/user");
 const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
-
+ 
 
 
 
@@ -132,6 +132,40 @@ router.post(`/`, async (req, res) => {
     if (!devis) {
       return res.status(500).send("The devis cannot be created");
     }
+
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
+    });
+
+    const mailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: user.email,
+      subject: "Nouveau Devis ajouté",
+      html: `
+        <html>
+          <body>
+            <p>Bonjour,</p>
+            <p>Votre nouveau devis (Numéro de devis: ${devis.numDevis}) a été ajouté avec succès.</p>
+            <p>Montant du devis: ${devis.montant}</p>
+            <p>Status: ${devis.status}</p>
+            <p>Merci de faire affaire avec nous.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email:", error);
+      } else {
+        console.log("Email sent:", info.response);
+      }
+    });
     res.send(devis);
   } catch (error) {
     console.error(error);
@@ -333,5 +367,8 @@ router.post("/test", async (req, res) => {
   }
 });
  
+ 
+
+
 
 module.exports = router;
