@@ -420,7 +420,7 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
       html: `
         <html>
           <body>
-            <p>Bonjour ${user.username},</p>
+            <p>Bonjour ${user.name},</p>
             <p>Votre conversion de ${pointsToConvert} points est en cours. Nous vous informerons dès que le processus sera terminé.</p>
             <p>Merci de faire partie de notre programme de fidélité.</p>
           </body>
