@@ -69,9 +69,11 @@ router.post(
         html: `
         <html>
           <body>
-            <p>Merci pour votre inscription chez Delta Cuisine !</p>
-            <p>Votre compte est en cours de validation. Vous recevrez un e-mail de confirmation contenant votre mot de passe une fois que votre compte aura été validé.</p>
-            <p>L'équipe de Delta Cuisine vous souhaite la bienvenue.</p>
+            <p>Cher(e) partenaire, </p>
+            <p>Nous vous exprimons notre gratitude pour avoir choisi Delta Cuisine !</p>
+            <p>Actuellement, votre inscription est en cours de validation. Un e-mail de confirmation contenant votre mot de passe vous parviendra dès que votre compte sera validé.</p>
+            <p>L'équipe de Delta Cuisine vous accueille chaleureusement.</p>
+
           </body>
         </html>
       `,
@@ -153,9 +155,10 @@ router.put("/:id", async (req, res) => {
       const mailOptions = {
         from: "applicationdeltacuisine@gmail.com",
         to: user.email,
-        subject: "Account Validation",
-        text: `${user.name},\n\Votre compte a été validé avec succès,
-        Voici votre nouveau mot de passe : ${req.body.password}\n\nBienvenue\n\L'équipe Delta cuisine.
+        subject: "Validation compte Delta Cuisine",
+        text: `${user.name},\n\Bienvenue dans la communauté Delta Cuisine !
+        Nous sommes ravis de vous informer que votre compte a été validé avec succès
+        Veuillez trouver ci-dessous votre mot de passe :  : ${req.body.password}\n\Encore une fois, bienvenue à bord !\n\L'équipe Delta cuisine.
         `,
       };
 
@@ -420,9 +423,10 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
       html: `
         <html>
           <body>
-            <p>Bonjour ${user.name},</p>
-            <p>Votre conversion de ${pointsToConvert} points est en cours. Nous vous informerons dès que le processus sera terminé.</p>
-            <p>Merci de faire partie de notre programme de fidélité.</p>
+            <p>Cher(e) partenaire ${user.name},</p>
+            <p>Nous avons bien reçu votre demande de conversion de  ${pointsToConvert} points. Pour finaliser cette transaction, veuillez nous faire parvenir une facture de prestation par e-mail. De plus, nous vous prions de déposer la facture l'original chez votre commercial.</p>
+            <p>Nous vous remercions pour votre collaboration.</p>
+            <p>L'équipe de Delta Cuisine.</p>
           </body>
         </html>
       `,

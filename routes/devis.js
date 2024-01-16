@@ -149,11 +149,14 @@ router.post(`/`, async (req, res) => {
       html: `
         <html>
           <body>
-            <p>Bonjour,</p>
-            <p>Votre nouveau devis (Numéro de devis: ${devis.numDevis}) a été ajouté avec succès.</p>
+            <p>Cher(e) partenaire,</p>
+            <p>Nous tenons à vous informer que le statut de votre devis (Numéro de devis: ${devis.numDevis}) a été ajouté avec succès.</p>
+
             <p>Montant du devis: ${devis.montant}</p>
-            <p>Status: ${devis.status}</p>
-            <p>Merci de faire affaire avec nous.</p>
+            <p>Dans l'attente de pouvoir convertir ce devis en commande, notre équipe est à votre disposition pour répondre à toutes vos questions et faciliter le processus.</p>
+
+             <p>Nous sommes impatients de poursuivre cette collaboration fructueuse.</p>
+              <p>L'équipe Delta Cuisine.</p>
           </body>
         </html>
       `,
