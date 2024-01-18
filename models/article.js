@@ -16,8 +16,10 @@ image: {
     type:String
 },
 video : { 
-    type:String
+    type:String,
+    default: ""
 }
+
 
 
 });
