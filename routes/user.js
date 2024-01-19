@@ -73,7 +73,6 @@ router.post(
             <p>Nous vous exprimons notre gratitude pour avoir choisi Delta Cuisine !</p>
             <p>Actuellement, votre inscription est en cours de validation. Un e-mail de confirmation contenant votre mot de passe vous parviendra dès que votre compte sera validé.</p>
             <p>L'équipe de Delta Cuisine vous accueille chaleureusement.</p>
-
           </body>
         </html>
       `,
@@ -85,17 +84,52 @@ router.post(
           res.status(500).send("Error sending email");
         } else {
           console.log("Email sent:", info.response);
-          res.status(200).send("Email sent successfully");
+
+          // Send notification email to the admin
+          const adminTransporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+              user: "applicationdeltacuisine@gmail.com",
+              pass: "pphexfcjduvckjdv",
+            },
+          });
+  
+          const adminMailOptions = {
+            from: "applicationdeltacuisine@gmail.com",
+            to: "applicationdeltacuisine@gmail.com",
+            subject: "Nouveau user Inscrit",
+            html: `
+              <html>
+                <body>
+                  <p>Admin,</p>
+                  <p>Un nouveau utilisateur s'est inscrit :</p>
+                  <p>Nom : ${user.name}</p>
+                  <p>ID : ${user._id}</p>
+                  <p>E-mail : ${user.email}</p>
+                  <p>Nous devons le valider.</p>
+                </body>
+              </html>
+            `,
+          };
+  
+          adminTransporter.sendMail(adminMailOptions, (adminError, adminInfo) => {
+            if (adminError) {
+              console.error("Error sending admin notification email:", adminError);
+            } else {
+              console.log("Admin notification email sent:", adminInfo.response);
+            }
+          });
+
+          res.status(200).send("User created and emails sent successfully");
         }
       });
-
-      res.send(savedUser);
     } catch (error) {
       console.error(error);
       res.status(500).send("Error creating user");
     }
   }
 );
+
 
 router.get(`/`, async (req, res) => {
   const userList = await User.find().select("-passwordHash");
@@ -144,6 +178,8 @@ router.put("/:id", async (req, res) => {
     if (!user) return res.status(400).send("The user cannot be updated!");
 
     if (req.body.validation === true) {
+
+
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {

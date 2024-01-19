@@ -19,8 +19,7 @@ video : {
     type:String,
     default: ""
 }
-
-
+ 
 
 });
 

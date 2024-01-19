@@ -41,14 +41,18 @@ router.post(
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
 
       const image = files["image"][0];
-      const video = files["video"][0];
+       
+      if (files["video"]) {
+        const video = files["video"][0];
+       videoUrl = `${basePath}${video.filename}`;
+     }
 
       let article = new Articles({
         title: req.body.title,
         description: req.body.description,
         contenu: req.body.contenu,
         image: `${basePath}${image.filename}`,
-        video: `${basePath}${video.filename}`,
+        video: videoUrl,  
       });
 
       article = await article.save();
