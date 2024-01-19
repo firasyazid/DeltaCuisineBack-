@@ -50,7 +50,7 @@ mongoose
   });
 
 app.get("/", (req, res) => {
-  res.send("Hello, Azure! This is a Delta Cuisine application.");
+  res.send("Hello it's Firass , This is a Delta Cuisine application.");
 });
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
