@@ -18,7 +18,18 @@ image: {
 video : { 
     type:String,
     default: ""
-}
+},
+image1 : 
+{
+    type: String,
+    default:''
+},
+image2 : 
+{
+    type: String,
+    default:''
+},
+
  
 
 });

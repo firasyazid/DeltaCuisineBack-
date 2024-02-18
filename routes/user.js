@@ -85,8 +85,7 @@ router.post(
         } else {
           console.log("Email sent:", info.response);
 
-          // Send notification email to the admin
-          const adminTransporter = nodemailer.createTransport({
+           const adminTransporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
               user: "applicationdeltacuisine@gmail.com",
@@ -235,7 +234,7 @@ router.post("/login", async (req, res) => {
           isAdmin: user.isAdmin,
         },
         secret,
-        { expiresIn: "3h" }
+        { expiresIn: "3d" }
       );
 
       res.status(200).send({ user: user.email, userId: user.id, token: token });
@@ -346,7 +345,6 @@ router.post("/teste", async (req, res) => {
 
 
 //sejour
-
 router.put("/subtract-points/:userId", async (req, res) => {
   const userId = req.params.userId;
 
@@ -602,6 +600,98 @@ router.put("/voyage/:userId", async (req, res) => {
       message: "Points subtracted successfully",
       updatedUser: user,
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+ 
+router.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.json({ exists: true });
+    }
+    return res.json({ exists: false });
+  } catch (error) {
+    console.error('Error checking email:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+////voyage /sejour 
+
+router.put("/sejourVoyage/:userId/:pointsToConvert", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const pointsToConvert = parseInt(req.params.pointsToConvert);
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+ 
+    // Send user notification email
+    const userTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
+    });
+
+    const userMailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: user.email,
+      subject: "Conversion en cours",
+      html: `
+        <html>
+          <body>
+            <p>Cher(e) partenaire ${user.name},</p>
+            <p>Nous avons bien reçu votre demande de conversion de ${pointsToConvert} points en Séjour/Voyage . 
+             <p>Nous vous remercions pour votre collaboration.</p>
+            <p>L'équipe de Delta Cuisine.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    await userTransporter.sendMail(userMailOptions);
+
+     user.TotalPoint -= pointsToConvert;
+    await user.save();
+
+     const adminTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "applicationdeltacuisine@gmail.com",
+        pass: "pphexfcjduvckjdv",
+      },
+    });
+
+    const adminMailOptions = {
+      from: "applicationdeltacuisine@gmail.com",
+      to: "applicationdeltacuisine@gmail.com",
+      subject: "Points convertis en argent",
+      html: `
+        <html>
+          <body>
+            <p>Admin,</p>
+            <p>L'utilisateur ${user.name}:  Id : ${userId} avec l'adresse e-mail: ${user.email} a converti ${pointsToConvert} points,
+               en séjour/ voyage</p>
+            <p>Nous devons le contacter.</p>
+          </body>
+        </html>
+      `,
+    };
+
+    await adminTransporter.sendMail(adminMailOptions);
+    return res.status(200).json({ message: "Points subtracted successfully" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });

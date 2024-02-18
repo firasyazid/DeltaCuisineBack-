@@ -33,26 +33,43 @@ router.post(
   "/",
   uploadOptions.fields([
     { name: "image", maxCount: 1 },
-    { name: "video", maxCount: 1 },
-  ]),
+    { name: "video", maxCount: 1 , optional: true},
+    { name: "image1", maxCount: 1, optional: true },
+    { name: "image2", maxCount: 1, optional: true },
+    ]),
   async (req, res) => {
     try {
       const files = req.files;
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
 
       const image = files["image"][0];
-       
+      let videoUrl = "";
+
       if (files["video"]) {
         const video = files["video"][0];
-       videoUrl = `${basePath}${video.filename}`;
-     }
+        videoUrl = `${basePath}${video.filename}`;
+      }
+
+      let image1Url = "";
+      if (files["image1"]) {
+        const image1 = files["image1"][0];
+        image1Url = `${basePath}${image1.filename}`;
+      }
+
+      let image2Url = "";
+      if (files["image2"]) {
+        const image2 = files["image2"][0];
+        image2Url = `${basePath}${image2.filename}`;
+      }
 
       let article = new Articles({
         title: req.body.title,
         description: req.body.description,
         contenu: req.body.contenu,
         image: `${basePath}${image.filename}`,
-        video: videoUrl,  
+        video: videoUrl,
+        image1: image1Url,
+        image2: image2Url,
       });
 
       article = await article.save();
@@ -68,9 +85,10 @@ router.post(
   }
 );
 
+
 router.get("/", async (req, res) => {
   try {
-    const articlesList = await Articles.find();
+    const articlesList = await Articles.find().sort({ _id: -1 });
     if (!articlesList) {
       return res.status(500).json({ success: false });
     }
@@ -80,6 +98,7 @@ router.get("/", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 router.delete("/:id", (req, res) => {
   Articles.findByIdAndRemove(req.params.id)

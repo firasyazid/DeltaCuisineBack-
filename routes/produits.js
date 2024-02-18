@@ -72,7 +72,7 @@ const FILE_TYPE_MAP = {
   
   router.get("/", async (req, res) => {
     try {
-      const produits = await Produits.find();
+      const produits = await Produits.find().sort({ _id: -1 });
       if (!produits) {
         return res.status(500).json({ success: false });
       }

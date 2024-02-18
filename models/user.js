@@ -40,10 +40,15 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
       },
-
       TotalPoint: {
         type: Number,
         default: 0,
+        validate: {
+            validator: function(v) {
+                return v >= 0;
+            },
+            message: props => `${props.value} is not a valid TotalPoint. TotalPoint cannot be negative.`
+        }
      },
      image: { 
         type: String,
@@ -54,7 +59,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         default:''
      },
-     
+
+      
     
 });
 
