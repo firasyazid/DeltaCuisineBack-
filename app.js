@@ -24,7 +24,10 @@ const produitsRouter = require("./routes/produits");
 const catalogueRouter = require("./routes/catalogue");
 const showroomRouter = require("./routes/showroom");
 const ConversionRouter = require("./routes/conversion");
-
+const LivraisonRouter = require("./routes/livraison");
+const CommandeRouter = require("./routes/commande");
+const CommercialRouter = require("./routes/commercial");
+  
 //Routes
 app.use(`${api}/users`, userRouter);
 app.use(`${api}/devis`, devisRouter);
@@ -34,6 +37,10 @@ app.use(`${api}/produits`, produitsRouter);
 app.use(`${api}/catalogues`, catalogueRouter);
 app.use(`${api}/showrooms`, showroomRouter);
 app.use(`${api}/conversions`, ConversionRouter);
+app.use(`${api}/livraisons`, LivraisonRouter);
+app.use(`${api}/commandes`, CommandeRouter);
+app.use(`${api}/commercials`, CommercialRouter);
+ 
 
 //Database
 mongoose

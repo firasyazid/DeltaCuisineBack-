@@ -30,6 +30,12 @@ image2 :
     default:''
 },
 
+image3 : 
+{
+    type: String,
+    default:''
+},  
+
  
 
 });

@@ -131,7 +131,7 @@ router.post(
 
 
 router.get(`/`, async (req, res) => {
-  const userList = await User.find().select("-passwordHash");
+  const userList = await User.find().select("-passwordHash").sort({ _id: -1 });
 
   if (!userList) {
     res.status(500).json({ success: false });
@@ -193,7 +193,7 @@ router.put("/:id", async (req, res) => {
         subject: "Validation compte Delta Cuisine",
         text: `${user.name},\n\Bienvenue dans la communauté Delta Cuisine !
         Nous sommes ravis de vous informer que votre compte a été validé avec succès
-        Veuillez trouver ci-dessous votre mot de passe :  : ${req.body.password}\n\Encore une fois, bienvenue à bord !\n\L'équipe Delta cuisine.
+        Veuillez trouver ci-dessous votre mot de passe : ${req.body.password}\n\Encore une fois, bienvenue à bord !\n\L'équipe Delta cuisine.
         `,
       };
 

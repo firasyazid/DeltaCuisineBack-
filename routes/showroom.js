@@ -1,16 +1,20 @@
 const { Showrooms } = require("../models/showroom");
 const express = require("express");
 const router = express.Router();
+const {Commercial} = require('../models/commercial');
 
 router.post(`/`, async (req, res) => {
+  const commercial = await Commercial.findById(req.body.commercial);
+  if (!commercial) return res.status(400).send("Invalid Id");
+const commercial2 = await Commercial.findById(req.body.commercial2);
+  if (!commercial2) return res.status(400).send("Invalid Id");
+
     try {
    
       let devis = new Showrooms ({
-         title: req.body.title,
-         name: req.body.name,
-         numero: req.body.numero,
-
-
+        title: req.body.title,
+         commercial: req.body.commercial,
+         commercial2: req.body.commercial2,
       });
   
       devis = await devis.save();
@@ -27,7 +31,7 @@ router.post(`/`, async (req, res) => {
 
   router.get(`/`, async (req, res) => {
     try {
-      const devisList = await Showrooms.find();
+      const devisList = await Showrooms.find().populate('commercial commercial2');
       if (!devisList) {
         return res.status(500).json({ success: false });
       }
@@ -67,6 +71,8 @@ router.post(`/`, async (req, res) => {
         title: req.body.title,
           name: req.body.name,
           numero: req.body.numero,
+          commercial: req.body.commercial,
+          commercial2: req.body.commercial2,
   
         },
         { new: true }
@@ -84,8 +90,7 @@ router.post(`/`, async (req, res) => {
 
   router.get(`/:id`, async (req, res) => {
     try {
-      const devis = await Showrooms.findById(req.params.id);
-  
+      const devis = await Showrooms.findById(req.params.id).populate('commercial commercial2');
       if (!devis) {
         return res.status(500).json({ success: false });
       }

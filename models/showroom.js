@@ -2,17 +2,18 @@ const mongoose = require('mongoose');
 
 
 const showroomSchema = new mongoose.Schema({
-
 title :{ 
  type:String
 },
-name : { 
-    type:String
-}, 
-numero : { 
-    type:String
-}, 
- 
+commercial: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Commercial'
+  },
+  commercial2: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Commercial'
+  },
+
 });
 
 showroomSchema.virtual('id').get(function () {
