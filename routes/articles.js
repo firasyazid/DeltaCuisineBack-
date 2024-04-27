@@ -209,4 +209,58 @@ router.get("/:id", async (req, res) => {
 
 
 
+//////deleteimage
+router.delete('/:articleId/image', async (req, res) => {
+  await deleteImage(req, res, 'image');
+});
+
+router.delete('/:articleId/image1', async (req, res) => {
+  await deleteImage(req, res, 'image1');
+});
+
+// DELETE route to delete image2 from an article
+router.delete('/:articleId/image2', async (req, res) => {
+  await deleteImage(req, res, 'image2');
+});
+
+// DELETE route to delete image3 from an article
+router.delete('/:articleId/image3', async (req, res) => {
+  await deleteImage(req, res, 'image3');
+});
+
+
+async function deleteImage(req, res, imageField) {
+  const { articleId } = req.params;
+
+  try {
+    // Find the article by ID
+    const article = await Articles.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Check if the imageField exists in the article
+    if (!(imageField in article)) {
+      return res.status(404).json({ error: `Image field '${imageField}' not found in article` });
+    }
+
+    // Check if the image field is already empty
+    if (!article[imageField]) {
+      return res.status(400).json({ error: `Image field '${imageField}' is already empty` });
+    }
+
+    // Delete the image field from the article
+    article[imageField] = '';
+
+    // Save the updated article
+    await article.save();
+
+    return res.status(200).json({ message: `Image field '${imageField}' deleted successfully` });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
 module.exports = router;
