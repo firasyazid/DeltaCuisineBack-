@@ -18,7 +18,10 @@ const contactSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  
+   client:{ 
+        type: String,   
+        default: '',
+     },
 });
 
 contactSchema.virtual("id").get(function () {

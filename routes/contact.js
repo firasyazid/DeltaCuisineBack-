@@ -31,8 +31,6 @@ const uploadOptions = multer({ storage: storage });
 router.post(`/`, uploadOptions.single("document"), async (req, res) => {
   try {
     let documentPath = "";  
-
-     
     if (req.file) {
       const fileName = req.file.filename;
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
@@ -40,13 +38,12 @@ router.post(`/`, uploadOptions.single("document"), async (req, res) => {
     }
 
      let contact = new Contact({
-      name: req.body.name,
-       message: req.body.message,
+      message: req.body.message,
       devis: req.body.devis,
       document: documentPath,  
       user: req.body.user,
-      client:req.body.client
-    });
+      client: req.body.client,
+     });
     contact = await contact.save();
     if (!contact) return res.status(500).send("The contact cannot be created");
 
