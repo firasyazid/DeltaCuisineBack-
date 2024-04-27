@@ -1,15 +1,11 @@
 const mongoose = require("mongoose");
 
 const contactSchema = new mongoose.Schema({
-  name: {
-    type: String,
-  },
+ 
 
-   
   message: {
     type: String,
   },
-
   document : { 
     type:String,
     default : '',
@@ -22,10 +18,7 @@ const contactSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-   client:{ 
-        type: String,   
-        default: '',
-     },
+  
 });
 
 contactSchema.virtual("id").get(function () {
