@@ -263,4 +263,37 @@ async function deleteImage(req, res, imageField) {
 }
 
 
+
+router.delete('/:id/video', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const article = await Articles.findById(id);
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Check if the article has a video
+    if (!article.video) {
+      return res.status(400).json({ error: 'Article does not have a video' });
+    }
+
+    // Remove the video from the article
+    article.video = '';
+
+    // Save the updated article
+    await article.save();
+
+    return res.status(200).json({ message: 'Video deleted successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
+
+
+
+
 module.exports = router;
