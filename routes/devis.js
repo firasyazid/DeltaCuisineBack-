@@ -24,23 +24,20 @@ router.get(`/get/count`, async (req, res) => {
 router.put("/update/:devisId", async (req, res) => {
   try {
     const { devisId } = req.params;
-    const devis = await Devis.findById(devisId).populate("user");
+    const devis = await Devis.findById(devisId).populate("user commande");
     if (!devis) {
       return res.status(404).json({ error: "Devis not found" });
     }
     if (devis.converted) {
-      return res
-        .status(400)
-        .json({ error: "Points already converted for this Devis" });
+      return res.status(400).json({ error: "Points already converted for this Devis" });
     }
-    if (devis.status !== "Livraison") {
-      return res
-        .status(400)
-        .json({ error: "Devis is not in Livraison status" });
+    if (devis.status !== "Commande") {
+      return res.status(400).json({ error: "Devis is not in Commande status" });
     }
+    
+    const montant = devis.commande.montantCmd;
 
-    const montant = devis.montant;
-
+    let totalPoint;
     if (montant >= 150000) {
       totalPoint = Math.floor(montant * 0.02);
     } else {
@@ -64,31 +61,29 @@ router.put("/update/:devisId", async (req, res) => {
         to: updatedDevis.user.email,
         subject: "Devis Converted",
         html: `
-        <html>
-          <body>
-            <p>Cher utilisateur,</p>
-            <p>Votre commande (ID: ${updatedDevis.id}), d'un montant de ${updatedDevis.montant} DT, a été échangée contre ${updatedDevis.nombrepoint} points.</p>
-             <p>Merci d'avoir utilisé notre service.</p>
-
-          </body>
-        </html>
-      `,
+          <html>
+            <body>
+              <p>Cher utilisateur,</p>
+              <p>Votre commande (ID: ${updatedDevis.id}), d'un montant de ${montant} DT, a été échangée contre ${totalPoint} points.</p>
+              <p>Merci d'avoir utilisé notre service.</p>
+            </body>
+          </html>
+        `,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.error("Error sending email:", error);
-          res.status(500).send("Error sending email");
+          return res.status(500).json({ error: "Error sending email" });
         } else {
           console.log("Email sent:", info.response);
-          res.status(200).send("Email sent successfully");
+          return res.status(200).json({ message: "Email sent successfully", devis });
         }
       });
     }
 
     await devis.save();
     const user = devis.user;
-
     user.TotalPoint += totalPoint;
     await user.save();
 
@@ -98,6 +93,7 @@ router.put("/update/:devisId", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 router.get(`/`, async (req, res) => {
   try {
