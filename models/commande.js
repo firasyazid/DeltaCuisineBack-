@@ -13,7 +13,6 @@ const commandeSchema = new mongoose.Schema({
     type: Date,
     default: null ,
 },
- 
   montantCmd: {
     type: Number,
     default: 0,

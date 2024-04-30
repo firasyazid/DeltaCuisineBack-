@@ -27,7 +27,6 @@ const storage = multer.diskStorage({
 });
 
 const uploadOptions = multer({ storage: storage });
-
 router.post(`/`, uploadOptions.single("document"), async (req, res) => {
   try {
     let documentPath = "";  
@@ -36,7 +35,6 @@ router.post(`/`, uploadOptions.single("document"), async (req, res) => {
       const basePath = `${req.protocol}://${req.get("host")}/public/uploads/`;
       documentPath = `${basePath}${fileName}`;
     }
-
      let contact = new Contact({
       message: req.body.message,
       devis: req.body.devis,

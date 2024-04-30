@@ -212,34 +212,19 @@ router.get("/usersDevis/:userId", async (req, res) => {
 router.get("/:userId/devis-status-count", async (req, res) => {
   try {
     const userId = req.params.userId;
-    const allStatuses = ["Devis", "Commande", "Livraison"];
-    const userDevisStatusCounts = await Devis.aggregate([
-      { $match: { user: mongoose.Types.ObjectId(userId) } },
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
 
-    const statusCountsMap = new Map();
-    allStatuses.forEach((status) => {
-      statusCountsMap.set(status, 0);
-    });
+    const devisCount = await Devis.countDocuments({ user: mongoose.Types.ObjectId(userId) });
+    const commandeCount = await Commande.countDocuments({ user: mongoose.Types.ObjectId(userId) });
+    const livraisonCount = await Livraison.countDocuments({ user: mongoose.Types.ObjectId(userId) });
 
-    userDevisStatusCounts.forEach((entry) => {
-      statusCountsMap.set(entry._id, entry.count);
-    });
+    const totalCount = devisCount + commandeCount + livraisonCount;
 
-    // Calculate total count of all devis
-    const totalCount = userDevisStatusCounts.reduce((acc, entry) => acc + entry.count, 0);
-    statusCountsMap.set("All Devis", totalCount);
-
-    const result = Array.from(statusCountsMap, ([statut, count]) => ({
-      statut,
-      count,
-    }));
+    const result = [
+      { statut: "Devis", count: devisCount },
+      { statut: "Commande", count: commandeCount },
+      { statut: "Livraison", count: livraisonCount },
+      { statut: "All Devis", count: totalCount }
+    ];
 
     res.json(result);
   } catch (err) {
@@ -247,6 +232,7 @@ router.get("/:userId/devis-status-count", async (req, res) => {
     res.status(500).json({ error: "Une erreur est survenue" });
   }
 });
+
 
 
 router.get("/:status/:userId", async (req, res) => {
