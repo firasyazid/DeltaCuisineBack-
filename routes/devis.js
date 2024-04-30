@@ -223,8 +223,7 @@ router.get("/:userId/devis-status-count", async (req, res) => {
       { statut: "Devis", count: devisCount },
       { statut: "Commande", count: commandeCount },
       { statut: "Livraison", count: livraisonCount },
-      { statut: "All Devis", count: totalCount }
-    ];
+     ];
 
     res.json(result);
   } catch (err) {
