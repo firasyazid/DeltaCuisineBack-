@@ -320,8 +320,6 @@ router.get("/wlc", (req, res) => {
   res.send("Welcome to the backend");
 });
 
-
- 
 router.post("/teste", async (req, res) => {
   try {
     const user = new User({
@@ -341,8 +339,6 @@ router.post("/teste", async (req, res) => {
     res.status(500).send("Error creating user");
   }
 });
-
-
 
 //sejour
 router.put("/subtract-points/:userId", async (req, res) => {
@@ -609,7 +605,6 @@ router.put("/voyage/:userId", async (req, res) => {
  
 router.post('/check-email', async (req, res) => {
   const { email } = req.body;
-
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -621,7 +616,6 @@ router.post('/check-email', async (req, res) => {
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
-
 
 ////voyage /sejour 
 
@@ -697,5 +691,22 @@ router.put("/sejourVoyage/:userId/:pointsToConvert", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+router.delete('/delete/:id', async (req, res) => {
+  try {
+      const userId = req.params.id;
+      const user = await User.findByIdAndDelete(userId);
+
+      if (!user) {
+          return res.status(404).send({ message: 'User not found' });
+      }
+
+      res.status(200).send({ message: 'User deleted successfully' });
+  } catch (error) {
+      res.status(500).send({ message: 'Error deleting user', error: error.message });
+  }
+});
+
+
 
 module.exports = router;
