@@ -27,6 +27,7 @@ const ConversionRouter = require("./routes/conversion");
 const LivraisonRouter = require("./routes/livraison");
 const CommandeRouter = require("./routes/commande");
 const CommercialRouter = require("./routes/commercial");
+const userPushTokenSchema = require("./routes/userPushToken");  
   
 //Routes
 app.use(`${api}/users`, userRouter);
@@ -40,6 +41,7 @@ app.use(`${api}/conversions`, ConversionRouter);
 app.use(`${api}/livraisons`, LivraisonRouter);
 app.use(`${api}/commandes`, CommandeRouter);
 app.use(`${api}/commercials`, CommercialRouter);
+app.use(`${api}/userPushTokens`, userPushTokenSchema);
  
 
 //Database

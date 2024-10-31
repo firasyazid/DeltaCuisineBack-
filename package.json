@@ -20,6 +20,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
+    "expo-server-sdk": "^3.11.0",
     "express": "^4.18.1",
     "express-jwt": "^8.4.1",
     "jsonwebtoken": "^9.0.2",

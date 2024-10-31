@@ -2,6 +2,9 @@ const { Articles } = require("../models/article");
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const { Expo } = require('expo-server-sdk');  
+const UserPushToken = require('../models/userPushTokenSchema');  
+let expo = new Expo();  
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -81,6 +84,35 @@ router.post(
       article = await article.save();
       if (!article) {
         return res.status(500).send("The article cannot be created");
+      }
+      const tokens = await UserPushToken.find().select('expoPushToken');
+      if (tokens && tokens.length > 0) {
+        let messages = [];
+
+        // Step 2: Create notification messages for each token
+        for (let tokenDoc of tokens) {
+          const expoPushToken = tokenDoc.expoPushToken;
+          if (Expo.isExpoPushToken(expoPushToken)) {
+            messages.push({
+              to: expoPushToken,
+              sound: 'default',
+              title: 'New Article Published!',
+              body: `Check out our latest article `,
+              data: { articleId: article._id },
+            });
+          }
+        }
+        // Step 3: Chunk and send notifications
+        let chunks = expo.chunkPushNotifications(messages);
+        let tickets = [];
+        for (let chunk of chunks) {
+          try {
+            let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+            tickets.push(...ticketChunk);
+          } catch (error) {
+            console.error('Error sending push notifications:', error);
+          }
+        }
       }
 
       res.send(article);

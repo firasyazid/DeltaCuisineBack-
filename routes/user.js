@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const { DevisConversion } = require("../models/DevisConversion");
 const nodemailer = require("nodemailer");
+const { Expo } = require('expo-server-sdk');  
+const UserPushToken = require('../models/userPushTokenSchema');  
+let expo = new Expo();  
 
 const FILE_TYPE_MAP = {
   "image/png": "png",
@@ -464,10 +467,12 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
 
     await userTransporter.sendMail(userMailOptions);
 
-     user.TotalPoint -= pointsToConvert;
+    // Deduct points from the user's account
+    user.TotalPoint -= pointsToConvert;
     await user.save();
 
-     const adminTransporter = nodemailer.createTransport({
+    // Notify the admin via email
+    const adminTransporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "applicationdeltacuisine@gmail.com",
@@ -492,13 +497,36 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
     };
 
     await adminTransporter.sendMail(adminMailOptions);
+
+    // Step 1: Retrieve the user's Expo push token from UserPushToken collection
+    const userPushToken = await UserPushToken.findOne({ userId: userId });
+    if (userPushToken && Expo.isExpoPushToken(userPushToken.expoPushToken)) {
+      // Step 2: Create the notification message
+      const message = {
+        to: userPushToken.expoPushToken,
+        sound: 'default',
+        title: 'Conversion de points en cours',
+        body: `Vous avez demandé à convertir ${pointsToConvert} points. Veuillez nous envoyer votre facture.`,
+        data: { pointsConverted: pointsToConvert, moneyAmount },
+      };
+
+      // Step 3: Send the notification
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+        console.log('Notification sent:', ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+    } else {
+      console.log("User does not have a valid Expo push token.");
+    }
+
     return res.status(200).json({ moneyAmount });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 router.put(
   "/:userId/update-image",
@@ -526,7 +554,8 @@ router.put(
     }
   }
 );
-//// voyage
+
+////POINTS TO  voyage
 router.put("/voyage/:userId", async (req, res) => {
   const userId = req.params.userId;
 
@@ -537,6 +566,7 @@ router.put("/voyage/:userId", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Deduct points for the voyage
     user.TotalPoint -= 1500;
     await user.save();
 
@@ -578,7 +608,7 @@ router.put("/voyage/:userId", async (req, res) => {
     const adminMailOptions = {
       from: "applicationdeltacuisine@gmail.com",
       to: "applicationdeltacuisine@gmail.com",
-      subject: "Points Converti en voyage",
+      subject: "Points Convertis en voyage",
       html: `
         <html>
           <body>
@@ -592,6 +622,29 @@ router.put("/voyage/:userId", async (req, res) => {
 
     await adminTransporter.sendMail(adminMailOptions);
 
+    // Retrieve the user's Expo push token from UserPushToken collection
+    const userPushToken = await UserPushToken.findOne({ userId });
+    if (userPushToken && Expo.isExpoPushToken(userPushToken.expoPushToken)) {
+      // Create the notification message
+      const message = {
+        to: userPushToken.expoPushToken,
+        sound: 'default',
+        title: 'Voyage Confirmé',
+        body: `Votre voyage a été confirmé. Vous avez échangé 1500 points.`,
+        data: { userId: user._id, pointsExchanged: 1500 },
+      };
+
+      // Send the notification
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+        console.log('Notification sent:', ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+    } else {
+      console.log("User does not have a valid Expo push token.");
+    }
+
     return res.json({
       message: "Points subtracted successfully",
       updatedUser: user,
@@ -602,7 +655,6 @@ router.put("/voyage/:userId", async (req, res) => {
   }
 });
 
- 
 router.post('/check-email', async (req, res) => {
   const { email } = req.body;
   try {
@@ -618,7 +670,6 @@ router.post('/check-email', async (req, res) => {
 });
 
 ////voyage /sejour 
-
 router.put("/sejourVoyage/:userId/:pointsToConvert", async (req, res) => {
   try {
     const userId = req.params.userId;

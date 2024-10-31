@@ -8,6 +8,10 @@ const { Commande } = require("../models/commande");
 const { Livraison } = require("../models/livraison");
 const { Showrooms } = require("../models/showroom");
 const { Commercial } = require("../models/commercial");
+const { Expo } = require('expo-server-sdk');  
+const UserPushToken = require('../models/userPushTokenSchema');  
+let expo = new Expo();  
+
 
 
 router.get(`/get/count`, async (req, res) => {
@@ -21,6 +25,8 @@ router.get(`/get/count`, async (req, res) => {
   });
 });
 
+
+/// convert devis to points
 router.put("/update/:devisId", async (req, res) => {
   try {
     const { devisId } = req.params;
@@ -37,6 +43,7 @@ router.put("/update/:devisId", async (req, res) => {
     
     const montant = devis.commande.montantCmd;
 
+    // Calculate total points based on montant
     let totalPoint;
     if (montant >= 150000) {
       totalPoint = Math.floor(montant * 0.02);
@@ -46,6 +53,7 @@ router.put("/update/:devisId", async (req, res) => {
     devis.TotalPoint = totalPoint;
     devis.converted = true;
 
+    // Send an email notification to the user
     const updatedDevis = await Devis.findById(devisId).populate("user");
     if (updatedDevis && updatedDevis.user && updatedDevis.user.email) {
       const transporter = nodemailer.createTransport({
@@ -77,15 +85,39 @@ router.put("/update/:devisId", async (req, res) => {
           return res.status(500).json({ error: "Error sending email" });
         } else {
           console.log("Email sent:", info.response);
-          return res.status(200).json({ message: "Email sent successfully", devis });
         }
       });
     }
 
     await devis.save();
+
+    // Update user's total points
     const user = devis.user;
     user.TotalPoint += totalPoint;
     await user.save();
+
+    // Retrieve the user's Expo push token from UserPushToken collection
+    const userPushToken = await UserPushToken.findOne({ userId: user._id });
+    if (userPushToken && Expo.isExpoPushToken(userPushToken.expoPushToken)) {
+      // Create the notification message
+      const message = {
+        to: userPushToken.expoPushToken,
+        sound: 'default',
+        title: 'Devis Converti',
+        body: `Votre commande d'un montant de ${montant} DT a été convertie en ${totalPoint} points.`,
+        data: { devisId: devis._id, pointsEarned: totalPoint },
+      };
+
+      // Send the notification
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+        console.log('Notification sent:', ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+    } else {
+      console.log("User does not have a valid Expo push token.");
+    }
 
     return res.json(devis);
   } catch (error) {
@@ -93,6 +125,7 @@ router.put("/update/:devisId", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 
 router.get(`/`, async (req, res) => {
@@ -108,12 +141,14 @@ router.get(`/`, async (req, res) => {
   }
 });
 
+ 
 router.post(`/`, async (req, res) => {
   try {
+    // Validate the user
     const user = await User.findById(req.body.user);
     if (!user) return res.status(400).send("Invalid user");
- 
 
+    // Validate commercial and showroom
     const commercialId = req.body.commercial;
     const commercial = await Commercial.findById(commercialId);
     if (!commercial) return res.status(400).send("Invalid commercial");
@@ -122,6 +157,7 @@ router.post(`/`, async (req, res) => {
     const showroom = await Showrooms.findById(showroomId);
     if (!showroom) return res.status(400).send("Invalid showroom");
 
+    // Create and save the devis
     let devis = new Devis({
       dateDevis: req.body.dateDevis,
       status: req.body.status,
@@ -140,6 +176,7 @@ router.post(`/`, async (req, res) => {
       return res.status(500).send("The devis cannot be created");
     }
 
+    // Send an email notification
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -157,12 +194,10 @@ router.post(`/`, async (req, res) => {
           <body>
             <p>Cher(e) partenaire,</p>
             <p>Nous tenons à vous informer que le statut de votre devis (Numéro de devis: ${devis.numDevis}) a été ajouté avec succès.</p>
-
             <p>Montant du devis: ${devis.montant}</p>
             <p>Dans l'attente de pouvoir convertir ce devis en commande, notre équipe est à votre disposition pour répondre à toutes vos questions et faciliter le processus.</p>
-
-             <p>Nous sommes impatients de poursuivre cette collaboration fructueuse.</p>
-              <p>L'équipe Delta Cuisine.</p>
+            <p>Nous sommes impatients de poursuivre cette collaboration fructueuse.</p>
+            <p>L'équipe Delta Cuisine.</p>
           </body>
         </html>
       `,
@@ -175,12 +210,37 @@ router.post(`/`, async (req, res) => {
         console.log("Email sent:", info.response);
       }
     });
+
+    // Step 1: Retrieve the user's Expo push token from UserPushToken collection
+    const userPushToken = await UserPushToken.findOne({ userId: req.body.user });
+    if (userPushToken && Expo.isExpoPushToken(userPushToken.expoPushToken)) {
+      // Step 2: Create the notification message
+      const message = {
+        to: userPushToken.expoPushToken,
+        sound: 'default',
+        title: 'Nouveau devis ajouté',
+        body: `Votre devis (Numéro: ${devis.numDevis}) a été ajouté avec succès.`,
+        data: { devisId: devis._id },
+      };
+
+      // Step 3: Send the notification
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+        console.log('Notification sent:', ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+      }
+    } else {
+      console.log("User does not have a valid Expo push token.");
+    }
+
     res.send(devis);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
 
 router.get(`/:id`, async (req, res) => {
   try {
@@ -233,7 +293,6 @@ router.get("/:userId/devis-status-count", async (req, res) => {
 });
 
 
-
 router.get("/:status/:userId", async (req, res) => {
   const status = req.params.status;
   const userId = req.params.userId;
@@ -262,10 +321,6 @@ router.delete("/:id", (req, res) => {
       return res.status(500).json({ success: false, error: err });
     });
 });
-
-
-
-
 
 
 /////this convert devis to commande to livraison
@@ -368,6 +423,27 @@ router.put("/:id", async (req, res) => {
       });
     }
 
+      // Send push notification to the user about the status update
+      const userPushToken = await UserPushToken.findOne({ userId: updatedDevis.user });
+      if (userPushToken && Expo.isExpoPushToken(userPushToken.expoPushToken)) {
+        const message = {
+          to: userPushToken.expoPushToken,
+          sound: 'default',
+          title: 'Mise à jour du statut de votre devis',
+          body: `Votre devis (Numéro: ${updatedDevis.numDevis}) a été mis à jour à : ${req.body.status}`,
+          data: { devisId: updatedDevis._id, status: req.body.status },
+        };
+  
+        try {
+          const ticketChunk = await expo.sendPushNotificationsAsync([message]);
+          console.log('Notification sent:', ticketChunk);
+        } catch (error) {
+          console.error('Error sending push notification:', error);
+        }
+      } else {
+        console.log("User does not have a valid Expo push token.");
+      }
+
     res.send(devis);
   } catch (error) {
     console.error(error);
@@ -375,21 +451,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
- 
-
 ///// put routerr commande
-
 router.put("/commande/:id", async (req, res) => {
   try {
     const commande = await Commande.findByIdAndUpdate(
@@ -424,10 +486,7 @@ router.put("/commande/:id", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-
 /// put livraison
-
 router.put("/:id", async (req, res) => {
   try {
     const livraison = await Livraison.findByIdAndUpdate(
@@ -454,7 +513,6 @@ router.put("/:id", async (req, res) => {
 });
 
 /// get devis livraison
-
 router.get(`/liv`, async (req, res) => {
   try {
     const devisList = await Livraison.find().populate("user");
