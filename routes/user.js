@@ -505,7 +505,7 @@ router.put("/convert-points/:userId/:pointsToConvert", async (req, res) => {
       const message = {
         to: userPushToken.expoPushToken,
         sound: 'default',
-        title: 'Conversion de points en cours',
+        title: 'Conversion de points reçue',
         body: `Vous avez demandé à convertir ${pointsToConvert} points. Veuillez nous envoyer votre facture.`,
         data: { pointsConverted: pointsToConvert, moneyAmount },
       };
@@ -629,8 +629,8 @@ router.put("/voyage/:userId", async (req, res) => {
       const message = {
         to: userPushToken.expoPushToken,
         sound: 'default',
-        title: 'Voyage Confirmé',
-        body: `Votre voyage a été confirmé. Vous avez échangé 1500 points.`,
+        title: 'Prêt pour l’aventure !',
+        body: `Votre conversion de points pour un séjour/voyage est validée. Bon voyage !.`,
         data: { userId: user._id, pointsExchanged: 1500 },
       };
 

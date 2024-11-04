@@ -85,6 +85,10 @@ router.post(
       if (!article) {
         return res.status(500).send("The article cannot be created");
       }
+
+
+
+      //// Step 1: Fetch all Expo push tokens
       const tokens = await UserPushToken.find().select('expoPushToken');
       if (tokens && tokens.length > 0) {
         let messages = [];
@@ -96,8 +100,8 @@ router.post(
             messages.push({
               to: expoPushToken,
               sound: 'default',
-              title: 'New Article Published!',
-              body: `Check out our latest article `,
+              title: 'Découvrez notre dernière actu !',
+              body: `Restez informé avec notre nouvel article. Soyez au courant des dernières tendances et nouveautés. `,
               data: { articleId: article._id },
             });
           }

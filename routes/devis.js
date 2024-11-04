@@ -218,7 +218,7 @@ router.post(`/`, async (req, res) => {
       const message = {
         to: userPushToken.expoPushToken,
         sound: 'default',
-        title: 'Nouveau devis ajouté',
+        title: 'Votre devis est prêt !',
         body: `Votre devis (Numéro: ${devis.numDevis}) a été ajouté avec succès.`,
         data: { devisId: devis._id },
       };

@@ -2,6 +2,9 @@ const { Produits } = require("../models/produits");
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const { Expo } = require('expo-server-sdk');  
+const UserPushToken = require('../models/userPushTokenSchema');  
+let expo = new Expo();  
 
 
 const FILE_TYPE_MAP = {
@@ -31,7 +34,8 @@ const FILE_TYPE_MAP = {
   
   const uploadOptions = multer({ storage: storage });
   
-  router.post(
+  
+router.post(
     "/",
     uploadOptions.fields([
       { name: "image", maxCount: 1 , optional: true},
@@ -49,27 +53,29 @@ const FILE_TYPE_MAP = {
         let videoUrl = null;
   
         if (files["video"]) {
-           const video = files["video"][0];
+          const video = files["video"][0];
           videoUrl = `${basePath}${video.filename}`;
         }
 
+        let image1Url = "";
+        if (files["image1"]) {
+          const image1 = files["image1"][0];
+          image1Url = `${basePath}${image1.filename}`;
+        }
         
-      let image1Url = "";
-      if (files["image1"]) {
-        const image1 = files["image1"][0];
-        image1Url = `${basePath}${image1.filename}`;
-      }
-      let image2Url = "";
-      if (files["image2"]) {
-        const image2 = files["image2"][0];
-        image2Url = `${basePath}${image2.filename}`;
-      }
-          let image3Url = "";
-      if (files["image3"]) {
-        const image3 = files["image3"][0];
-        image3Url = `${basePath}${image3.filename}`;
-      }
+        let image2Url = "";
+        if (files["image2"]) {
+          const image2 = files["image2"][0];
+          image2Url = `${basePath}${image2.filename}`;
+        }
+        
+        let image3Url = "";
+        if (files["image3"]) {
+          const image3 = files["image3"][0];
+          image3Url = `${basePath}${image3.filename}`;
+        }
   
+        // Create the new product
         let produits = new Produits({
           title: req.body.title,
           description: req.body.description,
@@ -79,20 +85,57 @@ const FILE_TYPE_MAP = {
           image1: image1Url,
           image2: image2Url,
           image3: image3Url,
-
         });
+
         produits = await produits.save();
+
         if (!produits) {
           return res.status(500).send("The produits cannot be created");
         }
-  
+
+        // Step 1: Retrieve all Expo push tokens
+        const tokens = await UserPushToken.find().select('expoPushToken');
+        
+        if (tokens && tokens.length > 0) {
+          let messages = [];
+
+          // Step 2: Create notification messages for each token
+          for (let tokenDoc of tokens) {
+            const expoPushToken = tokenDoc.expoPushToken;
+            if (Expo.isExpoPushToken(expoPushToken)) {
+              messages.push({
+                to: expoPushToken,
+                sound: 'default',
+                title: 'Nouveau produit disponible !',
+                body: `Découvrez notre dernière nouveauté – profitez-en dès maintenant.`,
+                data: { productId: produits._id },
+              });
+            }
+          }
+
+          // Step 3: Chunk and send notifications
+          let chunks = expo.chunkPushNotifications(messages);
+          let tickets = [];
+          for (let chunk of chunks) {
+            try {
+              let ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+              tickets.push(...ticketChunk);
+            } catch (error) {
+              console.error('Error sending push notifications:', error);
+            }
+          }
+        }
+
+        // Send the response with the new product data
         res.send(produits);
+
       } catch (error) {
         console.error(error);
         res.status(500).send("Internal Server Error");
       }
     }
   );
+
   
   router.get("/", async (req, res) => {
     try {
