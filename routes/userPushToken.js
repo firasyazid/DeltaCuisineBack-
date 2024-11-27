@@ -94,10 +94,9 @@ router.get('/push-token/:userId', async (req, res) => {
             data: { customMessage: message },
           };
         }
-      }).filter(Boolean); // Filter out any undefined messages
+      }).filter(Boolean);  
   
-      // Send notifications in chunks to handle large numbers of tokens
-      const chunks = expo.chunkPushNotifications(messages);
+       const chunks = expo.chunkPushNotifications(messages);
       let tickets = [];
       for (const chunk of chunks) {
         try {
